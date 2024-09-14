@@ -32,3 +32,5 @@ $ yarn build:mac
 # For Linux
 $ yarn build:linux
 ```
+
+## 1:23:51
