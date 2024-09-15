@@ -1,4 +1,5 @@
 import { ComponentProps, forwardRef } from 'react'
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { twMerge } from 'tailwind-merge'
 
 export const RootLayout = ({ children, className, ...props }: ComponentProps<'main'>) => {

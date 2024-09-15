@@ -41,12 +41,14 @@ export const selectedNoteAtom = unwrap(
     }
 )
 
-export const createEmptyNoteAtom = atom(null, (get, set) => {
+export const createEmptyNoteAtom = atom(null, async (get, set) => {
   const notes = get(notesAtom)
 
   if (!notes) return
+  //@ts-ignore
+  const title = await window.context.createNote()
 
-  const title = `Note ${notes.length + 1}`
+  if (!title) return
 
   const newNote: NoteInfo = {
     title,
@@ -57,11 +59,15 @@ export const createEmptyNoteAtom = atom(null, (get, set) => {
   set(selectedNoteIndexAtom, 0)
 })
 
-export const deleteNoteAtom = atom(null, (get, set) => {
+export const deleteNoteAtom = atom(null, async (get, set) => {
   const notes = get(notesAtom)
   const selectedNote = get(selectedNoteAtom)
 
   if (!selectedNote || !notes) return
+  // @ts-ignore
+  const isDeleted = await window.context.deleteNote(selectedNote.title)
+
+  if (!isDeleted) return
   set(
     notesAtom,
     notes.filter((note) => note.title !== selectedNote.title)
@@ -90,3 +96,40 @@ export const saveNoteAtom = atom(null, async (get, set, newContent: NoteContent)
     })
   )
 })
+
+// In your store file (e.g., @renderer/store)
+export const updateNoteAtom = atom(
+  null,
+  async (get, set, updatedNote: { title: string; content: NoteContent }) => {
+    const notes = get(notesAtom)
+    const selectedNote = get(selectedNoteAtom)
+
+    if (!selectedNote || !notes) return
+
+    // @ts-ignore
+    const isUpdated = await window.context.updateNote(updatedNote.title, updatedNote.content)
+
+    if (!isUpdated) return
+
+    // Update the notes array with the updated note
+    set(
+      notesAtom,
+      notes.map((note) => {
+        if (note.title === selectedNote.title) {
+          return {
+            ...note,
+            title: updatedNote.title,
+            lastEditTime: Date.now()
+          }
+        }
+        return note
+      })
+    )
+
+    set(selectedNoteAtom as any, {
+      ...selectedNote,
+      title: updatedNote.title,
+      lastEditTime: Date.now()
+    })
+  }
+)
